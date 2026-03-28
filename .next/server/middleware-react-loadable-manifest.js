@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST="{\"app/dashboard/page.jsx -> firebase/firestore\":{\"id\":\"app/dashboard/page.jsx -> firebase/firestore\",\"files\":[]},\"components/Navbar.jsx -> @/lib/firebase\":{\"id\":\"components/Navbar.jsx -> @/lib/firebase\",\"files\":[]},\"components/Navbar.jsx -> firebase/firestore\":{\"id\":\"components/Navbar.jsx -> firebase/firestore\",\"files\":[]}}"

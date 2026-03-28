@@ -1,0 +1,95 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user profile information including NID and contact details.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "name": { "type": "string", "description": "Full name of the user" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "nid": { "type": "string", "description": "National ID number" },
+        "contact": { "type": "string", "description": "Contact phone number" },
+        "role": { "type": "string", "enum": ["user", "admin", "caretaker"], "description": "User role" }
+      },
+      "required": ["uid", "name", "email", "nid", "contact", "role"]
+    },
+    "Service": {
+      "title": "Care Service",
+      "description": "Defines a care service offered on the platform.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Service ID" },
+        "title": { "type": "string", "description": "Service title (e.g., Baby Care)" },
+        "description": { "type": "string", "description": "Detailed description of the service" },
+        "pricePerHour": { "type": "number", "description": "Service charge per hour" },
+        "imageUrl": { "type": "string", "format": "uri", "description": "Image representing the service" },
+        "caretakerId": { "type": "string", "description": "UID of the caretaker who posted this service" }
+      },
+      "required": ["id", "title", "description", "pricePerHour", "imageUrl"]
+    },
+    "CaretakerApplication": {
+      "title": "Caretaker Application",
+      "description": "Application from a user to become a caretaker.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "nid": { "type": "string" },
+        "contact": { "type": "string" },
+        "experience": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "nid", "contact", "experience", "status", "createdAt"]
+    },
+    "Booking": {
+      "title": "Service Booking",
+      "description": "Records a service booking made by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Booking ID" },
+        "serviceId": { "type": "string", "description": "ID of the booked service" },
+        "serviceTitle": { "type": "string", "description": "Title of the booked service" },
+        "userId": { "type": "string", "description": "UID of the user who booked" },
+        "userName": { "type": "string", "description": "Name of the user" },
+        "userEmail": { "type": "string", "description": "Email of the user" },
+        "caretakerId": { "type": "string", "description": "UID of the caretaker providing the service" },
+        "duration": { "type": "number", "description": "Duration in hours" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "division": { "type": "string" },
+            "district": { "type": "string" },
+            "city": { "type": "string" },
+            "area": { "type": "string" },
+            "address": { "type": "string" }
+          }
+        },
+        "totalCost": { "type": "number", "description": "Calculated total cost" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "completed", "cancelled"], "description": "Booking status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of booking" }
+      },
+      "required": ["id", "serviceId", "userId", "duration", "location", "totalCost", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "UserProfile",
+      "description": "User profile documents indexed by UID."
+    },
+    "/services/{serviceId}": {
+      "schema": "Service",
+      "description": "Collection of available care services."
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of all service bookings."
+    },
+    "/caretaker_applications/{applicationId}": {
+      "schema": "CaretakerApplication",
+      "description": "Applications for caretaker role."
+    }
+  }
+}

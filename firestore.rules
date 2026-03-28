@@ -1,0 +1,146 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: {uid}
+// Fields:
+//   - uid: string (required) - Firebase Auth UID
+//   - name: string (required) - Full name
+//   - email: string (required, email) - User email
+//   - nid: string (required) - NID number
+//   - contact: string (required) - Phone number
+//   - role: string (required, enum: ['user', 'admin', 'caretaker']) - User role
+//
+// Collection: services
+// Document ID: {serviceId}
+// Fields:
+//   - id: string (required)
+//   - title: string (required)
+//   - description: string (required)
+//   - pricePerHour: number (required)
+//   - imageUrl: string (required, uri)
+//   - caretakerId: string (optional) - UID of the caretaker who posted it
+//
+// Collection: bookings
+// Document ID: {bookingId}
+// Fields:
+//   - id: string (required)
+//   - serviceId: string (required)
+//   - serviceTitle: string (required)
+//   - userId: string (required)
+//   - userName: string (required)
+//   - userEmail: string (required)
+//   - duration: number (required)
+//   - location: map (required)
+//   - totalCost: number (required)
+//   - status: string (required, enum: ['pending', 'confirmed', 'completed', 'cancelled'])
+//   - createdAt: timestamp (required)
+//
+// Collection: caretaker_applications
+// Document ID: {uid}
+// Fields:
+//   - uid: string (required)
+//   - name: string (required)
+//   - email: string (required)
+//   - nid: string (required)
+//   - contact: string (required)
+//   - experience: string (required)
+//   - status: string (required, enum: ['pending', 'approved', 'rejected'])
+//   - createdAt: timestamp (required)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "arafat.ahmed2004@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isCaretaker() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'caretaker';
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'name', 'email', 'nid', 'contact', 'role']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
+             data.nid is string && data.nid.size() >= 10 &&
+             data.contact is string && data.contact.size() >= 10 &&
+             data.role in ['user', 'admin', 'caretaker'];
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['id', 'serviceId', 'userId', 'duration', 'location', 'totalCost', 'status', 'createdAt']) &&
+             data.id is string &&
+             data.serviceId is string &&
+             data.userId == request.auth.uid &&
+             data.duration is number && data.duration > 0 &&
+             data.location is map &&
+             data.totalCost is number && data.totalCost >= 0 &&
+             data.status in ['pending', 'confirmed', 'completed', 'cancelled'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidApplication(data) {
+      return data.keys().hasAll(['uid', 'name', 'email', 'nid', 'contact', 'experience', 'status', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.status == 'pending' &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Match Blocks
+    // ===============================================================
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
+      allow update: if isAdmin() || (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role);
+    }
+
+    // Services collection
+    match /services/{serviceId} {
+      allow read: if true;
+      allow create: if isAdmin() || isCaretaker();
+      allow update, delete: if isAdmin();
+    }
+
+    // Bookings collection
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin() || (isCaretaker() && resource.data.caretakerId == request.auth.uid));
+      allow create: if isAuthenticated() && isValidBooking(request.resource.data) && request.resource.data.status == 'pending';
+      allow update: if isAuthenticated() && (
+        (resource.data.userId == request.auth.uid && request.resource.data.status == 'cancelled' && resource.data.status == 'pending') ||
+        (isCaretaker() && resource.data.caretakerId == request.auth.uid && request.resource.data.status in ['confirmed', 'completed']) ||
+        isAdmin()
+      );
+    }
+
+    // Caretaker Applications
+    match /caretaker_applications/{applicationId} {
+      allow read: if isAdmin() || isOwner(applicationId);
+      allow create: if isAuthenticated() && isOwner(applicationId) && isValidApplication(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+  }
+}
