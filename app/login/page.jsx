@@ -1,46 +1,58 @@
-'use client';
+"use client";
 
-import React, { useState, Suspense } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { Mail, Lock, LogIn, AlertCircle, Chrome } from 'lucide-react';
-import { motion } from 'motion/react';
+import React, { useState, Suspense } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { auth } from "@/lib/firebase";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
+import {
+  Mail,
+  Lock,
+  LogIn,
+  AlertCircle,
+  Chrome,
+  Eye,
+  EyeClosed,
+} from "lucide-react";
+import { motion } from "motion/react";
 
 function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+  const [show, setShow] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get('from') || '/';
+  const from = searchParams.get("from") || "/";
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push(from);
     } catch (err) {
-      setError(err.message || 'Failed to login');
+      setError(err.message || "Failed to login");
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setError('');
+    setError("");
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       router.push(from);
     } catch (err) {
-      setError(err.message || 'Failed to login with Google');
+      setError(err.message || "Failed to login with Google");
     } finally {
       setLoading(false);
     }
@@ -49,7 +61,9 @@ function LoginForm() {
   return (
     <div className="p-8 md:p-12">
       <div className="text-center mb-10">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Welcome Back</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">
+          Welcome Back
+        </h2>
         <p className="text-gray-500">Login to access your care services</p>
       </div>
 
@@ -62,7 +76,9 @@ function LoginForm() {
 
       <form onSubmit={handleEmailLogin} className="space-y-6">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Email Address
+          </label>
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -77,17 +93,27 @@ function LoginForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Password
+          </label>
           <div className="relative">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
-              type="password"
+              type={show ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
               placeholder="••••••••"
             />
+            <span
+              onClick={() => {
+                setShow(!show);
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer"
+            >
+              {show ? <EyeClosed className="w-4" /> : <Eye className="w-4" />}
+            </span>
           </div>
         </div>
 
@@ -96,7 +122,13 @@ function LoginForm() {
           disabled={loading}
           className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {loading ? 'Logging in...' : <><LogIn className="w-5 h-5" /> Login</>}
+          {loading ? (
+            "Logging in..."
+          ) : (
+            <>
+              <LogIn className="w-5 h-5" /> Login
+            </>
+          )}
         </button>
       </form>
 
@@ -105,7 +137,9 @@ function LoginForm() {
           <div className="w-full border-t border-gray-200"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
+          <span className="px-4 bg-white text-gray-500 font-medium">
+            Or continue with
+          </span>
         </div>
       </div>
 
@@ -119,8 +153,11 @@ function LoginForm() {
       </button>
 
       <p className="mt-10 text-center text-gray-600">
-        Don't have an account?{' '}
-        <Link href="/register" className="text-indigo-600 font-bold hover:underline">
+        Don't have an account?{" "}
+        <Link
+          href="/register"
+          className="text-indigo-600 font-bold hover:underline"
+        >
           Register Now
         </Link>
       </p>
