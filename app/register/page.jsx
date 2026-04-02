@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import axiosLocal from "@/lib/axios";
 import {
   User,
   Mail,
@@ -74,11 +75,11 @@ export default function Register() {
         email: formData.email,
         nid: formData.nid,
         contact: formData.contact,
-        role: "user",
       };
 
       try {
-        await setDoc(doc(db, "users", user.uid), userProfile);
+        const res = await axiosLocal.post("/users", userProfile);
+        console.log(res.data);
       } catch (err) {
         handleFirestoreError(err, "write", `users/${user.uid}`);
       }

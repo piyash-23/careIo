@@ -1,4 +1,4 @@
-// File: /Users/arafatahmedpiyash/Downloads/care.io/app/dashboard/user/page.jsx
+// File: /Volumes/Kelvin/express js/a-12/careIo/app/dashboard/user/page.jsx
 import * as entry from '../../../../../app/dashboard/user/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
